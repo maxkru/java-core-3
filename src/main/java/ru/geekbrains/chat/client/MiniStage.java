@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Scanner;
 
 public class MiniStage extends Stage {
     String nickTo;

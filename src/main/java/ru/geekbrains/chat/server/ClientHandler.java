@@ -12,6 +12,7 @@ public class ClientHandler {
     private DataOutputStream out;
     private DataInputStream in;
     private String nick;
+    String login = null;
 
     List<String> blackList;
 
@@ -43,11 +44,15 @@ public class ClientHandler {
                                     }
                                     sendBlacklist();
                                     server.subscribe(this);
+                                    DatabaseHandler.writeToLog(LoggedEvent.AUTH_OK, tokens[1]);
+                                    login = tokens[1];
                                     break;
                                 } else {
+                                    DatabaseHandler.writeToLog(LoggedEvent.AUTH_FAIL, tokens[1]);
                                     sendMsg("Учетная запись уже используется");
                                 }
                             } else {
+                                DatabaseHandler.writeToLog(LoggedEvent.AUTH_FAIL, tokens[1]);
                                 sendMsg("Неверный логин/пароль");
                             }
                         }
@@ -106,6 +111,7 @@ public class ClientHandler {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
+                    server.unsubscribe(this);
                     try {
                         in.close();
                     } catch (IOException e) {
@@ -121,7 +127,8 @@ public class ClientHandler {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    server.unsubscribe(this);
+                    if (login != null)
+                        DatabaseHandler.writeToLog(LoggedEvent.AUTH_EXIT, login);
                 }
             }).start();
         } catch (Exception e) {

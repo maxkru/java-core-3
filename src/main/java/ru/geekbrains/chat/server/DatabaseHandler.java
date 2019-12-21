@@ -1,6 +1,7 @@
 package ru.geekbrains.chat.server;
 
 import java.sql.*;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -135,5 +136,21 @@ public class DatabaseHandler {
         return list;
     }
 
+    public static void writeToLog(LoggedEvent ev, String login) {
+        Timestamp timestamp = Timestamp.from(Instant.now());
+        try {
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO chat_users.event_log (event_id, login, timestamp)" +
+                    " SELECT event_log_ids.event_id, ?, ?" +
+                    " FROM event_log_ids " +
+                    " WHERE event_log_ids.event_name = ?" +
+                    " LIMIT 1");
+            ps.setString(1, login);
+            ps.setTimestamp(2, timestamp);
+            ps.setString(3, ev.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
