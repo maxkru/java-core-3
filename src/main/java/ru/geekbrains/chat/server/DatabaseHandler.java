@@ -142,8 +142,7 @@ public class DatabaseHandler {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO chat_users.event_log (event_id, login, timestamp)" +
                     " SELECT event_log_ids.event_id, ?, ?" +
                     " FROM event_log_ids " +
-                    " WHERE event_log_ids.event_name = ?" +
-                    " LIMIT 1");
+                    " WHERE event_log_ids.event_name = ?");
             ps.setString(1, login);
             ps.setTimestamp(2, timestamp);
             ps.setString(3, ev.toString());
