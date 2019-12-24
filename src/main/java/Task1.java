@@ -7,7 +7,7 @@ public class Task1 {
 
         try {
             byte[] arrByte = new byte[128];
-            inputStream = new FileInputStream("123/12345.txt");
+            inputStream = new FileInputStream("files/12345.txt");
             int numSymbols;
             while ((numSymbols = inputStream.read(arrByte)) != -1) {
                 System.out.print(new String(arrByte, 0, numSymbols, StandardCharsets.UTF_8));
