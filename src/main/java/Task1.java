@@ -1,33 +1,23 @@
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class Task1 {
     public static void main(String[] args) {
-        FileReader fileReader = null;
-        BufferedReader bufferedReader = null;
+        FileInputStream inputStream = null;
 
         try {
-            fileReader = new FileReader("123/12345.txt");
-            bufferedReader = new BufferedReader(fileReader);
-
-            String in;
-
-            while((in = bufferedReader.readLine()) != null) {
-                System.out.println(in);
+            byte[] arrByte = new byte[128];
+            inputStream = new FileInputStream("123/12345.txt");
+            int numSymbols;
+            while ((numSymbols = inputStream.read(arrByte)) != -1) {
+                System.out.print(new String(arrByte, 0, numSymbols, StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (fileReader != null) {
+            if (inputStream != null) {
                 try {
-                    fileReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (bufferedReader != null) {
-                try {
-                    bufferedReader.close();
+                    inputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
