@@ -72,30 +72,3 @@ public class ABCPrinter {
     }
 
 }
-
-class APrinter implements Runnable {
-
-    @Override
-    public void run() {
-
-    }
-
-}
-
-class BPrinter implements Runnable {
-
-    @Override
-    public void run() {
-
-    }
-
-}
-
-class CPrinter implements Runnable {
-
-    @Override
-    public void run() {
-
-    }
-
-}
