@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class IntArrayMethods {
 
@@ -15,4 +16,20 @@ public class IntArrayMethods {
         throw new RuntimeException();
     }
 
+    // task 3
+    public static boolean checkIfOnlyOnesAndFoursInArray(int[] arr) {
+        return checkIfOnlySuchNumbersInArray(arr, 1, 4);
+    }
+
+    public static boolean checkIfOnlySuchNumbersInArray(int[] arr, int... numbers) {
+        HashSet<Integer> numbersSet = new HashSet<>();
+        for (int n : numbers)
+            numbersSet.add(n);
+
+        for(int i : arr)
+            if(!numbersSet.contains(i))
+                return false;
+
+        return true;
+    }
 }
