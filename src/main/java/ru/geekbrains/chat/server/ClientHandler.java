@@ -1,5 +1,8 @@
 package ru.geekbrains.chat.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,7 +15,9 @@ public class ClientHandler {
     private DataOutputStream out;
     private DataInputStream in;
     private String nick;
-    String login = null;
+    private String login = null;
+
+    private final static Logger logger = LogManager.getLogger(ClientHandler.class.getSimpleName());
 
     List<String> blackList;
 
@@ -30,11 +35,14 @@ public class ClientHandler {
                 try {
                     while (true) {
                         String str = in.readUTF();
+                        logger.debug("Received client message: " + str);
                         if (str.startsWith("/auth")) { // /auth login72 pass72
                             String[] tokens = str.split(" ");
                             String newNick = DatabaseHandler.getNickByLoginAndPass(tokens[1], tokens[2]);
                             if (newNick != null) {
                                 if (!server.isNickBusy(newNick)) {
+                                    login = tokens[1];
+                                    logger.info("Auth-OK for login '" + login + "'.");
                                     sendMsg("/authok");
                                     nick = newNick;
                                     try {
@@ -44,23 +52,23 @@ public class ClientHandler {
                                     }
                                     sendBlacklist();
                                     server.subscribe(this);
-                                    DatabaseHandler.writeToLog(LoggedEvent.AUTH_OK, tokens[1]);
-                                    login = tokens[1];
                                     break;
                                 } else {
-                                    DatabaseHandler.writeToLog(LoggedEvent.AUTH_FAIL, tokens[1]);
+                                    logger.info("Auth-FAIL for login '" + tokens[1] + "' (nick already in use).");
                                     sendMsg("Учетная запись уже используется");
                                 }
                             } else {
-                                DatabaseHandler.writeToLog(LoggedEvent.AUTH_FAIL, tokens[1]);
+                                logger.info("Auth-FAIL for login '" + tokens[1] + "' (wrong password).");
                                 sendMsg("Неверный логин/пароль");
                             }
                         }
                     }
                     while (true) {
                         String str = in.readUTF();
+                        logger.debug("Msg from nick '" + getNick() + "': " + str);
                         if (str.startsWith("/")) {
                             if (str.equals("/end")) {
+                                logger.info("Received '/end' from nick '" + getNick() + "'.");
                                 out.writeUTF("/serverclosed");
                                 break;
                             }
@@ -80,10 +88,12 @@ public class ClientHandler {
                                             if (DatabaseHandler.toggleNickInClientsBlacklistInDatabase(this, nickToBL)) {
                                                 blackList.add(nickToBL);
                                                 sendMsg("Вы добавили пользователя \'" + tokens[1] + "\' в черный список");
+                                                logger.info("User (login = " + login + ") added nick '" + nickToBL + "' to blacklist.");
                                                 sendBlacklist();
                                             } else {
                                                 blackList.remove(nickToBL);
                                                 sendMsg("Вы удалили пользователя \'" + tokens[1] + "\' из черного списка");
+                                                logger.info("User (login = " + login + ") removed nick '" + nickToBL + "' from blacklist.");
                                                 sendBlacklist();
                                             }
                                         }
@@ -96,21 +106,24 @@ public class ClientHandler {
                                 String[] tokens = str.split(" ");
                                 if (tokens.length > 3) {
                                     try {
+                                        logger.info("Trying to create user (nick = " + tokens[3] + ", login = " + tokens[1] + ") (request by nick '" + getNick() + "').");
                                         DatabaseHandler.addUser(tokens[1], tokens[2], tokens[3]);
                                         sendMsg("Создан пользователь с ником \'" + tokens[3]  + "\', логином \'" + tokens[1] + "\' и паролем \'" + tokens[2] + '\'');
+                                        logger.info("User (nick = " + tokens[3] + ", login = " + tokens[1] + ") successfully created (request by nick '" + getNick() + "').");
                                     } catch (BadCredentialException e) {
                                         sendMsg(e.getMessage());
+                                        logger.info("User (nick = " + tokens[3] + ", login = " + tokens[1] + ") creation failed: bad credential - " + e.getCredential() + " (request by nick '" + getNick() + "').");
                                     }
                                 }
                             }
                         } else {
                             server.broadcastMsg(this, nick + ": " + str);
                         }
-                        System.out.println("Client: " + str);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error("Error for nick '" + nick + "': " + e.getMessage());
                 } finally {
+                    logger.info("Disconnecting client, login '" + getLogin() + "', nick '" + getNick() + "'.");
                     server.unsubscribe(this);
                     try {
                         in.close();
@@ -127,8 +140,6 @@ public class ClientHandler {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if (login != null)
-                        DatabaseHandler.writeToLog(LoggedEvent.AUTH_EXIT, login);
                 }
             }).start();
         } catch (Exception e) {
@@ -142,18 +153,24 @@ public class ClientHandler {
 
     public void sendMsg(String msg) {
         try {
+            logger.debug("Sending msg to nick '" + getNick() + "': " + msg);
             out.writeUTF(msg);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error while sending message '" + msg + "' to nick '" + getNick() + "': " + e.getMessage());
         }
     }
 
     public void sendBlacklist() {
+        logger.debug("Sending blacklist to nick '" + getNick() + "'.");
         StringBuilder sb = new StringBuilder();
         sb.append("/blacklisted ");
         for (String o : blackList) {
             sb.append(o).append(" ");
         }
         sendMsg(sb.toString());
+    }
+
+    private String getLogin() {
+        return login;
     }
 }

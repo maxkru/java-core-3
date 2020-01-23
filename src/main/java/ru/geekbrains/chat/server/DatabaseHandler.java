@@ -1,5 +1,8 @@
 package ru.geekbrains.chat.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.sql.*;
 import java.time.*;
 import java.util.ArrayList;
@@ -9,14 +12,23 @@ public class DatabaseHandler {
     private static Connection connection;
     private static Statement stmt;
 
+    private final static Logger logger = LogManager.getLogger(DatabaseHandler.class.getSimpleName());
+
     public static void connect() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
+
+            logger.trace("Attempting to connect to database.");
+
             connection = DriverManager.getConnection("jdbc:mysql://localhost/chat_users?" +
                     "user=chat-server&password=XgVbEF4vTzP!R&serverTimezone=Europe/Moscow");
             stmt = connection.createStatement();
+
+            logger.info("Connected to database.");
         } catch (Exception e) {
+            logger.fatal("Couldn't establish connection to database.");
             e.printStackTrace();
+            throw new RuntimeException("Couldn't establish connection to database.");
         }
     }
 
@@ -26,7 +38,7 @@ public class DatabaseHandler {
         if (!Pattern.matches("^[\\d\\p{Lower}\\p{Upper}]{5,32}$", password))
             throw new BadCredentialException("password", "Пароль должен состоять из латинских букв и цифр и быть от 5 до 32 символов длиной");
         if (!Pattern.matches("^[\\d\\p{Lower}\\p{Upper}]{3,20}$", nick))
-            throw new BadCredentialException("password", "Никнейм должен состоять из латинских букв и цифр и быть от 3 до 20 символов длиной");
+            throw new BadCredentialException("nickname", "Никнейм должен состоять из латинских букв и цифр и быть от 3 до 20 символов длиной");
 
         try {
             String queryCheckIfOccupied = "SELECT login, nickname FROM users WHERE login = ? OR nickname = ?;";
@@ -43,14 +55,15 @@ public class DatabaseHandler {
                 ps.setString(3, nick);
                 ps.executeUpdate();
             } else {
-                if(login.equals(rs.getString("login")))
+                if(login.equals(rs.getString("login"))) {
                     throw new BadCredentialException("login", "Этот логин уже используется");
-                else
+                } else {
                     throw new BadCredentialException("nickname", "Этот никнейм уже используется");
+                }
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("addUser - SQLException: " + e.getMessage());
         }
     }
 
@@ -68,7 +81,9 @@ public class DatabaseHandler {
 
     public static void disconnect() {
         try {
+            logger.trace("Attempting to disconnect from database.");
             connection.close();
+            logger.info("Disconnected from database as intended.");
         } catch (SQLException e) {
             e.printStackTrace();
         }

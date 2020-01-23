@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="InfoLogFile" filename="info.log">
+            <ThresholdFilter level="info"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+        </File>
+<!--        <File name="DebugLogFile" filename="debug.log">
+            <ThresholdFilter level="debug"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File> -->
+    </Appenders>
+    <Loggers>
+        <Logger name="Server" level="debug" additivity="true">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="DatabaseHandler" level="debug" additivity="true">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="ClientHandler" level="debug" additivity="true">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="InfoLogFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

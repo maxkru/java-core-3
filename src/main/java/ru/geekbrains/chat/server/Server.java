@@ -1,5 +1,8 @@
 package ru.geekbrains.chat.server;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,6 +11,8 @@ import java.util.Vector;
 public class Server {
     private Vector<ClientHandler> clients;
 
+    private static final Logger logger = LogManager.getLogger(Server.class.getSimpleName());
+
     public Server() {
         clients = new Vector<>();
         ServerSocket server = null;
@@ -15,23 +20,34 @@ public class Server {
         try {
             DatabaseHandler.connect();
             server = new ServerSocket(8189);
-            System.out.println("Сервер запущен. Ожидаем клиентов...");
+            logger.info("Server started and waiting for clients.");
             while (true) {
                 socket = server.accept();
-                System.out.println("Клиент подключился");
+                logger.info("A client connected.");
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("An IOException occurred: " + e.getMessage());
         } finally {
+            logger.info("Server is now stopping.");
             try {
-                socket.close();
+                if(socket != null) {
+                    logger.debug("Attempting to close socket.");
+                    socket.close();
+                    logger.debug("Socket closed as intended.");
+                }
             } catch (IOException e) {
+                logger.warn("Failed to close socket. " + e.getMessage());
                 e.printStackTrace();
             }
             try {
-                server.close();
+                if(server != null) {
+                    logger.debug("Attempting to close server.");
+                    server.close();
+                    logger.debug("Server closed as intended.");
+                }
             } catch (IOException e) {
+                logger.warn("Failed to close server. " + e.getMessage());
                 e.printStackTrace();
             }
             DatabaseHandler.disconnect();
@@ -42,7 +58,7 @@ public class Server {
         for (ClientHandler o : clients) {
             if (o.getNick().equals(nickTo)) {
                 if (o.checkBlackList(from.getNick())) {
-                    from.sendMsg("Пользователь \'" + nickTo + "\' добавил вас в черный список");
+                    from.sendMsg("Пользователь '" + nickTo + "' добавил вас в черный список");
                 } else {
                     o.sendMsg("from " + from.getNick() + ": " + msg);
                     from.sendMsg("to " + nickTo + ": " + msg);
@@ -71,6 +87,7 @@ public class Server {
     }
 
     public void broadcastClientsList() {
+        logger.debug("Broadcasting clients list.");
         StringBuilder sb = new StringBuilder();
         sb.append("/clientslist ");
         for (ClientHandler o : clients) {
@@ -83,11 +100,13 @@ public class Server {
     }
 
     public void subscribe(ClientHandler client) {
+        logger.debug("Client subscribed.");
         clients.add(client);
         broadcastClientsList();
     }
 
     public void unsubscribe(ClientHandler client) {
+        logger.debug("Client unsubscribed.");
         clients.remove(client);
         broadcastClientsList();
     }
