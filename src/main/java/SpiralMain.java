@@ -1,6 +1,6 @@
 public class SpiralMain {
     public static void main(String[] args) {
-        int n = 10;
+        int n = 4;
         int[][] spiral = new Spiral().makeSpiral(n);
         int maxL = Integer.toString(n * n).length();
         String format = "%" + (maxL + 1) + "d";
