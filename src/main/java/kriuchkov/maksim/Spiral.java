@@ -1,3 +1,5 @@
+package kriuchkov.maksim;
+
 public class Spiral {
 
     int[][] makeSpiral(int n) {
