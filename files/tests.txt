@@ -1,0 +1,7 @@
+checkTwoNumbers: int 5, int 5
+checkTwoNumbers: int 10, int 20
+calculate: int 1, int 2, int 3, int 4
+isNegative: int 1
+isNegative: int 0
+isNegative: int -100
+isLeapYear: int 2000
