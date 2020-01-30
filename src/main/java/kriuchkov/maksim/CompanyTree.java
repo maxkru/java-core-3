@@ -10,7 +10,7 @@ public class CompanyTree {
 
     }
 
-    public void addToTree(Company company) {
+    public void add(Company company) {
         if (company.getParentId() == 0)
             roots.add(company);
         else {
@@ -19,7 +19,7 @@ public class CompanyTree {
                 parentCandidate = findCompany(rootCompany, company.getParentId());
 
                 if (parentCandidate != null) {
-                    parentCandidate.getChildren().add(company);
+                    parentCandidate.addChild(company);
                     break;
                 }
             }
@@ -28,7 +28,7 @@ public class CompanyTree {
                     parentCandidate = findCompany(orphanCompany, company.getParentId());
 
                     if (parentCandidate != null) {
-                        parentCandidate.getChildren().add(company);
+                        parentCandidate.addChild(company);
                         break;
                     }
                 }
@@ -42,7 +42,7 @@ public class CompanyTree {
         while(it.hasNext()) {
             Company orphan = it.next();
             if(company.getId() == orphan.getParentId()) {
-                company.getChildren().add(orphan);
+                company.addChild(orphan);
                 it.remove();
             }
         }

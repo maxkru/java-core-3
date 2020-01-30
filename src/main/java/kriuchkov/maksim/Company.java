@@ -49,4 +49,11 @@ public class Company {
             System.out.print(levelsForVertical.contains(i) ? "|   " : "    ");
         }
     }
+
+    void addChild(Company child) {
+        if(child.getParentId() != this.getId())
+            throw new IllegalArgumentException("Child candidate has incorrect parentId!");
+
+        this.getChildren().add(child);
+    }
 }

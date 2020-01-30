@@ -14,7 +14,7 @@ public class CompanyMain {
         String line;
         while((line = reader.readLine()) != null && !line.isEmpty()) {
             int[] ids = parseLine(line);
-            tree.addToTree(new Company(ids[0], ids[1]));
+            tree.add(new Company(ids[0], ids[1]));
         }
         tree.print();
     }
