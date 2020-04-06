@@ -62,8 +62,9 @@ public class CompanyTree {
     }
 
     public void print() {
+        HashSet<Integer> set = new HashSet<>();
         for(Company root : roots) {
-            root.print(0, new HashSet<>());
+            root.print(0, set);
         }
     }
 }
